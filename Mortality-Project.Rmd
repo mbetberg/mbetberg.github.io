@@ -9,12 +9,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Introduction: 
-Every year, hundreds of thousands of people die in the United States. These deaths are spread out all over the year, and can occur for a variety of reasons. But the year is not uniform; there are Summer and Winter seasons, representing differing temperatures, among other effects. Some of these effects may speed up or slow down the rate of death. So, in this analysis, we will use data science and go through the data science pipeline to answer some questions: Is there a deadliest time of year? When is it? And finally, who does it effect? 
+Every year, hundreds of thousands of people die in the United States. These deaths are spread out all over the year, and can occur for a variety of reasons. But the year is not uniform; there are Summer and Winter seasons, representing differing temperatures, among other effects. Some of these effects may speed up or slow down the rate of death. So, in this analysis, we will use data science and go through the data science pipeline to answer some questions: Is there a deadliest time of year? When is it? And finally, who does it effect? There are so many deaths that making heads or tails of this data is only possible with Data Science.
 
 
 The first part of this process is to collect and aggregate the data that we use to answer our questions. For our tutorial, we will be using data provided by the CDC (obtained through kaggle) to get detailed information on deaths in the United States.
 
-So first we need to load the data into R studio and import the libraries that contain the tools that we need. To determine the answer to these questions, we will use the data from 2011 through 2015. The read.csv function converts a csv file into a dataframe object in R.   
+So first we need to load the data into R studio and import the libraries that contain the tools that we need. To determine the answer to these questions, we will use data from 2011 through 2015. Using Data Science, we can analyze the millions of deaths in this interval to calculate key statistics in answering this question, which we go into below.
 
 ```{r loadData, message=FALSE, warning=FALSE}  
 library(tidyverse) 
@@ -33,7 +33,7 @@ df_2012 <- read.csv(file="mortality/2012_data.csv") %>% mutate(icd_code_10th_rev
 df_2011 <- read.csv(file="mortality/2011_data.csv")
 
 ```
-SO even though we now have the raw data which contains the infomation we need, there is so much other data and noise within the dataset. For our purposes the data is not clean. What we want is to get the percent of yearly deaths that occur in each month, across these years. We are using percents instead of total death counts because it is possible that one year may have suffered more deaths in total compared to another year, which could potentially skew the data. Also, there could be differences in the ability to record death each year.  
+So even though we now have the raw data which contains the infomation we need, there is so much other data and noise within the dataset. For our purposes the data is not clean. What we want is to get the percent of yearly deaths that occur in each month, across these years. We are using percents instead of total death counts because it is possible that one year may have suffered more deaths in total compared to another year, which could potentially skew the data. Also, there could be differences in the ability to record death each year.  
 
 This leads us to our next step in the data science pipeline, which is cleaning up our data in a manner that will help us answer our question 
 
@@ -176,7 +176,14 @@ avg_ratio_df
 With this table, we can make a bar graph to better compare the avg yearly death percent for each month 
 
 ```{r scatter_graph} 
-avg_ratio_df %>% ggplot(mapping = aes(y = avg, x = month)) + geom_bar(stat="identity")
+avg_ratio_df$month = as.factor(avg_ratio_df$month)
+
+avg_ratio_df$month <- factor(avg_ratio_df$month, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+
+avg_ratio_df %>% ggplot(mapping = aes(y = avg, x = month)) + geom_bar(stat="identity") +
+  labs(title="Percentage of Yearly Deaths that occur each month",
+         x = "Month",
+         y = "% of Yearly Deaths")
 ```
 
 Based off the bar graph, January seems to be the deadliest single month, having an avg yearly death percentage of roughly 10%. This is followed by December whose rate is about 9%. 
@@ -431,13 +438,18 @@ Therefore, we can conclude that increased death rate at older ages is at least p
 Further Reading:
 
 https://journals.lww.com/epidem/fulltext/2016/07000/The_Excess_Winter_Deaths_Measure__Why_Its_Use_Is.6.aspx
+
 https://www.ncbi.nlm.nih.gov/pubmed/12546188
 
 (Other) Sources of data:
 
 https://www.kaggle.com/cdc/mortality/data (our source)
+
 https://www.cdc.gov/nchs/fastats/deaths.htm
+
 https://ec.europa.eu/eurostat/statistics-explained/pdfscache/1274.pdf
+
 http://www.euro.who.int/en/data-and-evidence/archive/mortality-database-updated
+
 https://www.cdc.gov/flu/about/burden/preliminary-in-season-estimates.htm
 
