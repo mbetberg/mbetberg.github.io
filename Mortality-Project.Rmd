@@ -1,0 +1,443 @@
+---
+title: "Final Project"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Introduction: 
+Every year, hundreds of thousands of people die in the United States. These deaths are spread out all over the year, and can occur for a variety of reasons. But the year is not uniform; there are Summer and Winter seasons, representing differing temperatures, among other effects. Some of these effects may speed up or slow down the rate of death. So, in this analysis, we will use data science and go through the data science pipeline to answer some questions: Is there a deadliest time of year? When is it? And finally, who does it effect? 
+
+
+The first part of this process is to collect and aggregate the data that we use to answer our questions. For our tutorial, we will be using data provided by the CDC (obtained through kaggle) to get detailed information on deaths in the United States.
+
+So first we need to load the data into R studio and import the libraries that contain the tools that we need. To determine the answer to these questions, we will use the data from 2011 through 2015. The read.csv function converts a csv file into a dataframe object in R.   
+
+```{r loadData, message=FALSE, warning=FALSE}  
+library(tidyverse) 
+library(rvest)
+library(rjson)
+library(plyr)
+library(dplyr)
+library(data.table)
+library(stringr)
+
+
+df_2015 <- read.csv(file="mortality/2015_data.csv")
+df_2014 <- read.csv(file="mortality/2014_data.csv")
+df_2013 <- read.csv(file="mortality/2013_data.csv")
+df_2012 <- read.csv(file="mortality/2012_data.csv") %>% mutate(icd_code_10th_revision = icd_code_10) %>% select(-icd_code_10)
+df_2011 <- read.csv(file="mortality/2011_data.csv")
+
+```
+SO even though we now have the raw data which contains the infomation we need, there is so much other data and noise within the dataset. For our purposes the data is not clean. What we want is to get the percent of yearly deaths that occur in each month, across these years. We are using percents instead of total death counts because it is possible that one year may have suffered more deaths in total compared to another year, which could potentially skew the data. Also, there could be differences in the ability to record death each year.  
+
+This leads us to our next step in the data science pipeline, which is cleaning up our data in a manner that will help us answer our question 
+
+First we will get the total amount of rows in each year, which represents how many people died that year.  
+Second we will group the data by its month in order to sum up how many rows have a certain month, or how many deaths have occured this month 
+Third, using these two new attributes, we will calculate the percent of yearly deaths for each month in the year. We will run all five years through this pipeline. 
+
+```{r cleaning}  
+count_2015 <- nrow(df_2015)
+
+df_2015 %>% mutate(num = 1) %>% dplyr::group_by(month_of_death) %>%  dplyr::summarize(month_total = sum(num))
+
+clean_df_2015 <- df_2015  %>% mutate(num = 1) %>% dplyr::group_by(month_of_death) %>% 
+dplyr::summarize(month_total = sum(num)) %>% mutate(total = count_2015) %>% 
+mutate(ratio_2015 = (month_total*1.0)/total) %>%  mutate(month= if_else(month_of_death ==1, 
+                                                 "Jan", ifelse( month_of_death ==2, 
+                                                              "Feb", ifelse(
+                                                  month_of_death == 3, "Mar", ifelse(
+                                                    month_of_death == 4, "Apr", ifelse(
+                                                      month_of_death == 5, "May", ifelse( month_of_death == 6, "Jun", ifelse(month_of_death == 7, "Jul", ifelse(month_of_death == 8, "Aug", ifelse(month_of_death == 9, "Sep", ifelse(month_of_death ==10, "Oct", ifelse(month_of_death == 11, "Nov", "Dec")))))
+                                                        
+                                              
+                                                      )
+                                                    )
+                                                  )
+                                                              )
+                                                   
+                                                 ))) %>%
+select(month, ratio_2015)
+clean_df_2015 
+
+count_2014 <- nrow(df_2014)
+clean_df_2014 <- df_2014  %>%mutate(num = 1) %>% dplyr::group_by(month_of_death) %>% 
+dplyr::summarize(month_total = sum(num)) %>% mutate(total = count_2014) %>% 
+mutate(ratio_2014 = (month_total*1.0)/total) %>%  
+mutate(month= if_else(month_of_death ==1, 
+                                                 "Jan", ifelse( month_of_death ==2, 
+                                                              "Feb", ifelse(
+                                                  month_of_death == 3, "Mar", ifelse(
+                                                    month_of_death == 4, "Apr", ifelse(
+                                                      month_of_death == 5, "May", ifelse( month_of_death == 6, "Jun", ifelse(month_of_death == 7, "Jul", ifelse(month_of_death == 8, "Aug", ifelse(month_of_death == 9, "Sep", ifelse(month_of_death ==10, "Oct", ifelse(month_of_death == 11, "Nov", "Dec")))))
+                                                        
+                                              
+                                                      )
+                                                    )
+                                                  )
+                                                              )
+                                                   
+                                                 ))) %>%
+select(month, ratio_2014)
+clean_df_2014 
+
+count_2013 <- nrow(df_2013)
+clean_df_2013 <- df_2013  %>%mutate(num = 1) %>% dplyr::group_by(month_of_death) %>%
+dplyr::summarize(month_total = sum(num)) %>% mutate(total = count_2013) %>% 
+mutate(ratio_2013 = (month_total*1.0)/total) %>% 
+mutate(month= if_else(month_of_death ==1, 
+                                                 "Jan", ifelse( month_of_death ==2, 
+                                                              "Feb", ifelse(
+                                                  month_of_death == 3, "Mar", ifelse(
+                                                    month_of_death == 4, "Apr", ifelse(
+                                                      month_of_death == 5, "May", ifelse( month_of_death == 6, "Jun", ifelse(month_of_death == 7, "Jul", ifelse(month_of_death == 8, "Aug", ifelse(month_of_death == 9, "Sep", ifelse(month_of_death ==10, "Oct", ifelse(month_of_death == 11, "Nov", "Dec")))))
+                                                        
+                                              
+                                                      )
+                                                    )
+                                                  )
+                                                              )
+                                                   
+                                                 ))) %>%
+select(month, ratio_2013)
+clean_df_2013 
+
+count_2012 <- nrow(df_2012)
+clean_df_2012 <- df_2012  %>%mutate(num = 1) %>% dplyr::group_by(month_of_death) %>% 
+dplyr::summarize(month_total = sum(num)) %>% mutate(total = count_2012) %>% 
+mutate(ratio_2012 = (month_total*1.0)/total) %>%  
+mutate(month= if_else(month_of_death ==1, 
+                                                 "Jan", ifelse( month_of_death ==2, 
+                                                              "Feb", ifelse(
+                                                  month_of_death == 3, "Mar", ifelse(
+                                                    month_of_death == 4, "Apr", ifelse(
+                                                      month_of_death == 5, "May", ifelse( month_of_death == 6, "Jun", ifelse(month_of_death == 7, "Jul", ifelse(month_of_death == 8, "Aug", ifelse(month_of_death == 9, "Sep", ifelse(month_of_death ==10, "Oct", ifelse(month_of_death == 11, "Nov", "Dec")))))
+                                                        
+                                              
+                                                      )
+                                                    )
+                                                  )
+                                                              )
+                                                   
+                                                 ))) %>%
+select(month, ratio_2012)
+clean_df_2012 
+
+count_2011 <- nrow(df_2011)
+clean_df_2011 <- df_2011  %>%mutate(num = 1) %>% dplyr::group_by(month_of_death) %>% 
+dplyr::summarize(month_total = sum(num)) %>% mutate(total = count_2011) %>% 
+mutate(ratio_2011 = (month_total*1.0)/total) %>%  
+mutate(month= if_else(month_of_death ==1, 
+                                                 "Jan", ifelse( month_of_death ==2, 
+                                                              "Feb", ifelse(
+                                                  month_of_death == 3, "Mar", ifelse(
+                                                    month_of_death == 4, "Apr", ifelse(
+                                                      month_of_death == 5, "May", ifelse( month_of_death == 6, "Jun", ifelse(month_of_death == 7, "Jul", ifelse(month_of_death == 8, "Aug", ifelse(month_of_death == 9, "Sep", ifelse(month_of_death ==10, "Oct", ifelse(month_of_death == 11, "Nov", "Dec")))))
+                                                        
+                                              
+                                                      )
+                                                    )
+                                                  )
+                                                              )
+                                                   
+                                                 ))) %>%
+select(month, ratio_2011)
+clean_df_2011
+```
+
+Now that we have these clean tables, we are closer to the answer of our first question: what is the deadliest time of year?. Although one can somewhat eyeball these tables and guess the answer to the question, it is easier to revise the tables, generally into something visual (especially if there is a lot of data). The next step of the data science pipeline is to use explartory data analysis to better explain and communicate this data.   
+
+Our goal now is to make a graph that shows average percent of yearly deaths for each month based off of the percent recorded for each month, each year in the dataset. In order to do this, first we want to make another table that computes these percent yearly deaths.
+
+To make this table, frist we join all of the clean tables we made from the process above by their month. This will enable us to mass all of the diffent numbers together. After that we add each of the 5 numbers for all 12 months and divide the result by 5, which results in the average yearly death percent for each month.
+
+```{r graph_table1} 
+avg_ratio_df <- clean_df_2015 %>% inner_join(clean_df_2014,
+                                             by = "month") %>% 
+  inner_join(clean_df_2013, 
+               by= "month") %>% 
+  inner_join(clean_df_2012, 
+             by= "month") %>%  
+  inner_join(clean_df_2011, by = "month") %>% 
+  mutate(avg = (ratio_2015 + ratio_2014 + ratio_2013 + 
+                  ratio_2012 + ratio_2011)/5)%>% 
+  select(month, avg) 
+  
+
+avg_ratio_df
+
+```
+
+With this table, we can make a bar graph to better compare the avg yearly death percent for each month 
+
+```{r scatter_graph} 
+avg_ratio_df %>% ggplot(mapping = aes(y = avg, x = month)) + geom_bar(stat="identity")
+```
+
+Based off the bar graph, January seems to be the deadliest single month, having an avg yearly death percentage of roughly 10%. This is followed by December whose rate is about 9%. 
+
+It is interesting to know though how varied or different January and December are from the rest of the months in terms of their yearly death percentage. For this we will make use of a normal distribution curve. Comparing the distance between these months' death percent and the mean death percent will give us a better idea of how statistically signficant these months are. 
+
+In order to do this, we need to calculate the mean and standard deviation of our yearly death percents.
+
+After getting these values we will use them to plot the following bell curve:
+
+
+```{r bell_curve} 
+  sd <- sd(avg_ratio_df$avg) 
+sd
+  mean <- mean(avg_ratio_df$avg)
+  x <- seq(0.06,0.11,length=200)
+  y <- (1/sqrt(2*pi*sd))*exp((-(x-mean)^2)/(2*sd*sd))
+  plot(x,y,type="l",lwd=2,col="red")
+
+```
+The X axis on the bell curve represents the yearly death percent of each month. The peak represents the mean yearly death percent (about 0.08333..., or 1/12). January has a yearly death percent of roughly 0.10 which signifcantly larger than the mean. Also December, which is at 0.09, appears significant.
+
+From the data that we have collected so far, it seems pretty conclusive that January is the deadliest month. To truly confirm this though, lets see if a logistic regression model agrees with out conclusion. 
+
+Our model will try to compute the following: given a month, estimate the yearly death percent.  To go about this we will make a logistic based predictor model by using our full dataset, and then see if the model can predict January to have the highest death rate with statistical significance. We will be using a 95% confidence interval.
+
+In order to make our models first we need to train them with the data mentioned above. Thus we need to do a little data cleaning up by creating one big table that conains the month and yearly death percents for the data.
+
+
+```{r models}   
+clean_df_2015B <- clean_df_2015 %>% mutate(ratio = ratio_2015) %>% 
+  select(month, ratio) 
+clean_df_2014B  <- clean_df_2014 %>% mutate(ratio = ratio_2014) %>% 
+  select(month, ratio) 
+clean_df_2013B <- clean_df_2013 %>% mutate(ratio = ratio_2013) %>% 
+  select(month, ratio) 
+clean_df_2012B <- clean_df_2012 %>% mutate(ratio = ratio_2012) %>% 
+  select(month, ratio) 
+clean_df_2011B <- clean_df_2011 %>% mutate(ratio = ratio_2011) %>% 
+  select(month, ratio) 
+
+train_data_df1 <- clean_df_2015B %>% rbind(clean_df_2014B) %>%  
+  rbind(clean_df_2013B) %>% 
+  rbind(clean_df_2012B) %>% 
+  rbind(clean_df_2011B)
+
+train_data_df1
+``` 
+
+Now we want to train the model using a logistic modeling function
+
+```{R models2} 
+model1 <- glm(ratio ~ month, data = train_data_df1) 
+model1 
+```
+With our model made lets see how they predict the yearly death percents for each month 
+
+```{R predictions}   
+
+broom::tidy(model1)
+
+```
+
+Because this value is smaller than our confidence interval (0.05), we reject the null hypothesis and therefore can conclude that the difference between January and the other months is statistically significant.
+
+So, we are able to conclude that January is the deadliest month, implying that the winter months are deadlier than non-winter months. (December's difference is also statistically significant).
+
+So, why might this difference exist? Well, in order to figure that out, let's add back the rows we removed earlier and look at some other statistics within these deaths. Similarly, we're going to keep track of each month's average death toll for later.
+
+```{r graph_table2} 
+all_ = df_2015
+
+all_ =  rbind(all_, df_2014)
+all_ =  rbind(all_, df_2013)
+all_ =  rbind(all_, df_2012)
+all_ =  rbind(all_, df_2011)
+
+result <- fromJSON(file="mortality/2015_codes.json")
+
+all_$month_of_death <- as.factor(all_$month_of_death)
+levels(all_$month_of_death) = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+```
+
+First, let's look at manner of death. Looking at reasons for death could clue us into why the winter months have more deaths than any other month.
+
+Before looking at manner of death, however, we need to fix one thing: the data is encoded using numbers. For example, 1=Accidental Death, 2=Suicide, etc.; we need to transform these into usable labels (so we can interpret them). So, we're going to read from the accompanying JSON file to import these labels (which contain the real values), and paste them over the existing factor labels like so:
+
+```{r manner_1, warning=FALSE}
+
+all = all_
+
+md = result$manner_of_death
+all = all %>% mutate(manner_of_death = ifelse(is.na(manner_of_death), "Blank", manner_of_death))
+
+all$manner_of_death <- as.factor(all$manner_of_death)
+all$manner_of_death <- revalue(all$manner_of_death, md %>% unlist())
+```
+
+Data successfully transcribed, we now will group by month, and show a few different graphs. Explanations will follow. Note that deaths **without** a specified manner of death will be filtered out.
+
+```{r manner_2}
+
+deaths_per_month = all %>% dplyr::group_by(month_of_death) %>% dplyr::summarize(month_total = n())
+
+manner_df <- all %>% select(manner_of_death, month_of_death) %>% dplyr::group_by(manner_of_death, month_of_death) %>% dplyr::summarize(tot = n()) %>% left_join(deaths_per_month, by="month_of_death") %>% mutate(manner_pct = tot/month_total)
+
+manner_df <- manner_df %>% filter(as.character(manner_of_death) != "Not specified")
+
+manner_df %>% ggplot(aes(x=month_of_death, y=tot, fill=manner_of_death)) + geom_bar(stat="identity") +
+  labs(title="Manner of Death Frequency by Month",
+         x = "Month",
+         y = "Number of Deaths",
+       fill = "Manner of Death")
+
+manner_df %>% ggplot(aes(x=month_of_death, y=manner_pct, fill=manner_of_death)) + geom_bar(stat="identity") +
+  labs(title="Manner of Death Distribution by Month",
+         x = "Month",
+         y = "Percent Distribution",
+       fill = "Manner of Death")
+
+manner_df %>% filter(manner_of_death == "Natural") %>% ggplot(aes(x=month_of_death, y=manner_pct)) + geom_bar(stat="identity") +
+  labs(title="Natural Death Distribution by Month",
+         x = "Month",
+         y = "Percent Distribution")
+
+manner_df %>% filter(manner_of_death != "Natural") %>% ggplot(aes(x=month_of_death, y=tot, fill=manner_of_death)) + geom_bar(stat="identity") +
+  labs(title="Manner of Death Frequency by Month (No Natural Deaths)",
+         x = "Month",
+         y = "Number of Deaths",
+       fill = "Manner of Death")
+
+```
+
+The first graph is simple- it shows the number of deaths per month. It also displays the amount of deaths from each manner of death. As demonstrated, Natural Death has by far the largest fraction of deaths in every month.
+
+Adjusting for the number of deaths per month (by making everything a percent) tells a similar story, however interestingly Natural Death seems to contain a slightly larger perent of deaths in the winter months. Looking at only the percent of Natural Deaths, this trend appears to hold, and looking at the frequency of other causes of death reveals that winter months no longer have a clear edge over non-winter months
+
+Now that we've determined natural causes could be the reason, let's look elsewhere to see if we can prove it. Natural Deaths seem correlated with age, so that's where we will go next. Again, we will be taking group names from the JSON file.
+
+```{r age_1}
+
+all = all_
+
+md = result$age_recode_12
+
+all = all %>% mutate(age_recode_12 = ifelse(as.integer(age_recode_12) < 10, paste("0", age_recode_12, sep=''), age_recode_12))
+
+all$age_recode_12 <- as.factor(all$age_recode_12)
+all$age_recode_12 <- revalue(all$age_recode_12, md %>% unlist())
+```
+
+The groupings look like so:
+
+```{r age_2}
+
+age_df <- all %>% select(age_recode_12, month_of_death) %>% dplyr::group_by(age_recode_12, month_of_death) %>% dplyr::summarize(tot = n()) %>% left_join(deaths_per_month, by="month_of_death") %>% mutate(age_pct = tot/month_total)
+
+age_df %>% ggplot(aes(x=month_of_death, y=age_pct, fill=age_recode_12)) + geom_bar(stat="identity") +
+  labs(title="Age of Death Distribution by Month",
+         x = "Month",
+         y = "Percentage of Deaths",
+       fill = "Age Group")
+
+age_df %>% ggplot(aes(x=month_of_death, y=tot, fill=age_recode_12)) + geom_bar(stat="identity") +
+  labs(title="Age of Death Frequency by Month",
+         x = "Month",
+         y = "Number of Deaths",
+       fill = "Age Group")
+
+age_df %>% filter(age_recode_12 == "85 years and over") %>% ggplot(aes(x=month_of_death, y=age_pct)) + geom_bar(stat="identity") +
+  labs(title="Percentage of deaths from those 85 years and older",
+         x = "Month",
+         y = "Percentage of Deaths")
+
+age_df %>% filter(age_recode_12 == "75 - 84 years") %>% ggplot(aes(x=month_of_death, y=age_pct)) + geom_bar(stat="identity") +
+  labs(title="Percentage of deaths from those 75 - 84 years old",
+         x = "Month",
+         y = "Percentage of Deaths")
+
+age_df %>% filter(age_recode_12 != "75 - 84 years" && age_recode_12 != "85 years and over") %>% ggplot(aes(x=month_of_death, y=tot, fill=age_recode_12)) + geom_bar(stat="identity") +
+  labs(title="Number of deaths from those 74 years or younger",
+         x = "Month",
+         y = "Number of Deaths",
+       fill = "Age Group")
+```
+
+The first two graphs seem to indicate there may be at least *some* correlation between those over the age of 75 and deaths in the winter months. This can be seen in greater detail in the next two graphs, where the winter months seem to have a significant increase in percentage of deaths in people over 85 and a slight increase in people aged between 75 and 84. Again, looking at only the deaths that don't fall into these categories reveals that the trend has weakened considerably. To be sure, let's look at a linear regression model.
+
+Plotting age of death per month, we get something like this:
+
+```{r age_linear_1}
+
+all <- all_
+
+all <- all %>% filter(detail_age <= 130) #There are error values
+
+age_ds_df <- all %>% select(detail_age, month_of_death) %>% dplyr::group_by(detail_age, month_of_death) %>% dplyr::summarize(tot = n()) %>% left_join(deaths_per_month, by="month_of_death") %>% mutate(age_pct = tot/month_total)
+
+
+age_ds_df %>% ggplot(aes(x=detail_age, y=tot, color=month_of_death)) +
+  geom_point() +
+  labs(title="Frequency of Death by Age",
+         x = "Age",
+         y = "Number of Deaths",
+       fill = "Month")
+```
+
+After a certain point, the number of deaths understandably tapers off as there are simply few people who live that old. To somewhat adjust for this effect, we will be ignoring those older than 90.
+
+```{r age_linear_1b}
+age_ds_df %>% filter(detail_age <= 90) %>% ggplot(aes(x=detail_age, y=age_pct, color=month_of_death)) +
+  geom_smooth(method=lm, se=FALSE) + geom_point() +
+  labs(title="Frequency of Death by Age (Under 90)",
+         x = "Age",
+         y = "Number of Deaths",
+       fill = "Month")
+
+```
+
+To check our theorem, we will be running a hypothesis test, to see if the slope of all observations in the six "winter" months (November -> April) is significantly different from the slope of all observations in the "summer" months (May -> October). We're going to run a linear regression test on both models, then simply compare the results. We will be using a 90% confidence interval.
+
+If we can prove slope(Summer) - Slope(Winter) != 0, then we should be able to conclude differences in percent deaths by age are correlated with "season".
+
+```{r age_linear_2}
+
+gp_alt <- lm(detail_age ~ age_pct, age_ds_df %>% filter(detail_age <= 90) %>% filter(month_of_death == "Jan" | month_of_death == "Feb" | month_of_death == "Mar" | month_of_death == "Dec" | month_of_death == "Apr" | month_of_death == "Nov"))
+
+gp_null <- lm(detail_age ~ age_pct, age_ds_df %>% filter(detail_age <= 90) %>% filter(month_of_death != "Jan" & month_of_death != "Feb" & month_of_death != "Mar" & month_of_death != "Dec" & month_of_death != "Apr" & month_of_death != "Nov"))
+
+gp_null = broom::tidy(gp_null)
+df_null = as.data.frame(gp_null)
+
+gp_alt = broom::tidy(gp_alt)
+df_alt = as.data.frame(gp_alt)
+
+gp_null #Summer Months
+gp_alt #Winter Months
+
+mean_diff = df_null[2, 2] - df_alt[2, 2]
+
+std_diff = sqrt((df_null[2, 3])^2 + (df_alt[2, 3])^2)
+
+pnorm(0, mean=mean_diff, sd=std_diff, lower.tail=TRUE)
+
+```
+
+Because our p-value is smaller than our confidence interval (0.10), we reject the null hypothesis and therefore can conclude that Winter Months have a significantly different rate of death (by age) than summer months.
+
+Therefore, we can conclude that increased death rate at older ages is at least partly responsible for the increased death rate in the winter months, especially January.
+
+Further Reading:
+
+https://journals.lww.com/epidem/fulltext/2016/07000/The_Excess_Winter_Deaths_Measure__Why_Its_Use_Is.6.aspx
+https://www.ncbi.nlm.nih.gov/pubmed/12546188
+
+(Other) Sources of data:
+
+https://www.kaggle.com/cdc/mortality/data (our source)
+https://www.cdc.gov/nchs/fastats/deaths.htm
+https://ec.europa.eu/eurostat/statistics-explained/pdfscache/1274.pdf
+http://www.euro.who.int/en/data-and-evidence/archive/mortality-database-updated
+https://www.cdc.gov/flu/about/burden/preliminary-in-season-estimates.htm
+
