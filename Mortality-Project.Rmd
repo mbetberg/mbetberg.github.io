@@ -261,7 +261,7 @@ all_ =  rbind(all_, df_2013)
 all_ =  rbind(all_, df_2012)
 all_ =  rbind(all_, df_2011)
 
-result <- fromJSON(file="mortality/2015_codes.json")
+result <- fromJSON(file="mortality/2015_codes2.json")
 
 all_$month_of_death <- as.factor(all_$month_of_death)
 levels(all_$month_of_death) = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
@@ -453,3 +453,7 @@ http://www.euro.who.int/en/data-and-evidence/archive/mortality-database-updated
 
 https://www.cdc.gov/flu/about/burden/preliminary-in-season-estimates.htm
 
+
+Data Source:
+
+Centers for Disease Control and Prevention. (2017, August 3). Death in the United States. Retrieved May 16, 2020, from https://www.kaggle.com/cdc/mortality/data
